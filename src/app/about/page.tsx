@@ -52,6 +52,19 @@ export default function AboutPage() {
 
       <Card>
         <CardHeader>
+          <CardTitle>CSVをスプレッドシートに取り込む方法</CardTitle>
+          <CardDescription>エクスポートしたCSVは数ステップで取り込めます。</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm text-muted-foreground">
+          <p>1. このアプリの「共有 / バックアップ」画面で「CSVをダウンロード」を押します。</p>
+          <p>2. Googleスプレッドシートを開き、「ファイル → インポート」を選びます。</p>
+          <p>3. 「アップロード」タブで、ダウンロードしたCSVファイルを選びます。</p>
+          <p>4. インポート方法で「新しいシートを作成」または「現在のシートを置換」を選んで実行します。</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>データ取り込み方法</CardTitle>
           <CardDescription>定期便データは2つの方法で取り込めます。</CardDescription>
         </CardHeader>
