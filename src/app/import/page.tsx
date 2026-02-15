@@ -111,7 +111,7 @@ export default function ImportTextPage() {
     }
 
     setStatus("loading");
-    setMessage("テキストを解析中です...");
+    setMessage("テキストを解析中です...（完了まで数分かかる場合があります）");
 
     try {
       const response = await fetch("/api/import/parse", {

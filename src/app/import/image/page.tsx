@@ -123,7 +123,7 @@ export default function ImportImagePage() {
     }
 
     setStatus("loading");
-    setMessage("画像を解析中です...");
+    setMessage("画像を解析中です...（完了まで数分かかる場合があります）");
 
     try {
       const formData = new FormData();
@@ -239,6 +239,9 @@ export default function ImportImagePage() {
           <CardDescription>
             複数画像に対応しています。商品一覧と配送スケジュール（価格）を一緒に入れると精度が上がります。
           </CardDescription>
+          <p className="text-xs text-muted-foreground">
+            スマホでは画像サイズや通信状況の影響で失敗しやすいため、画像解析はPCでの利用をおすすめします。
+          </p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div
