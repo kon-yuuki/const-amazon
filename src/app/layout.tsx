@@ -11,8 +11,8 @@ export const metadata: Metadata = {
   description: siteDescription,
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: "/icons/icon-192.svg",
-    apple: "/icons/icon-192.svg",
+    icon: "/icons/pwa-icon-192.png",
+    apple: "/icons/pwa-icon-192.png",
   },
   openGraph: {
     type: "website",
@@ -22,10 +22,10 @@ export const metadata: Metadata = {
     description: siteDescription,
     images: [
       {
-        url: "/icons/icon-512.svg",
-        width: 512,
-        height: 512,
-        alt: "Const. icon",
+        url: "/ogp.png",
+        width: 1200,
+        height: 600,
+        alt: "Const. ogp",
       },
     ],
   },
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: siteName,
     description: siteDescription,
-    images: ["/icons/icon-512.svg"],
+    images: ["/ogp.png"],
   },
 };
 
