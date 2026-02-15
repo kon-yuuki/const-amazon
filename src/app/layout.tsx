@@ -1,23 +1,24 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+const pageTitle = "Const. | Amazon定期便の費用管理ツール";
 const siteName = "Const.";
 const siteDescription = "定期便など周期が異なる出費を月額に換算し、家計の固定費を見える化するアプリ。";
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "Const.",
+  title: pageTitle,
   description: siteDescription,
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: "/icons/pwa-icon-192.png",
+    icon: "/favicon.svg",
     apple: "/icons/pwa-icon-192.png",
   },
   openGraph: {
     type: "website",
     url: "/",
-    title: siteName,
+    title: pageTitle,
     siteName,
     description: siteDescription,
     images: [
@@ -31,7 +32,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: siteName,
+    title: pageTitle,
     description: siteDescription,
     images: ["/ogp.png"],
   },

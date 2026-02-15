@@ -173,7 +173,7 @@ export default function Home() {
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-2">
             <p className="text-sm font-medium text-muted-foreground">Const. ダッシュボード</p>
-            <h1 className="text-3xl font-bold tracking-tight text-primary">月額固定費計算ツール</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-primary">Amazon定期便の費用管理ツール</h1>
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
@@ -250,7 +250,7 @@ export default function Home() {
             </div>
             <CardDescription>登録済み定期便一覧</CardDescription>
             <p className="text-xs text-muted-foreground">
-              最終更新: {state ? dateTimeJa.format(new Date(state.updatedAt)) : "-"}
+              最終更新: {state && state.items.length > 0 ? dateTimeJa.format(new Date(state.updatedAt)) : "-"}
             </p>
           </CardHeader>
           <CardContent className="max-w-full space-y-3 overflow-x-hidden">
