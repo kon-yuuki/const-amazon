@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -34,10 +35,12 @@ type ParseApiPayload = {
 };
 
 export default function ImportTextPage() {
+  const router = useRouter();
   const [rawText, setRawText] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("Amazon定期便ページのテキストを貼り付けてください。");
   const [parsedItems, setParsedItems] = useState<ParsedItem[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const draft = loadImportDraft();
@@ -143,6 +146,10 @@ export default function ImportTextPage() {
   };
 
   const saveSelected = async () => {
+    if (isSaving) {
+      return;
+    }
+
     if (rowErrors.length > 0) {
       setStatus("error");
       setMessage(rowErrors[0]);
@@ -156,24 +163,30 @@ export default function ImportTextPage() {
       return;
     }
 
-    const current = await loadAppState();
-    const next = await saveAppState({
-      ...current,
-      items: [
-        ...current.items,
-        ...selected.map((item) => ({
-          id: crypto.randomUUID(),
-          name: item.name,
-          quantity: item.quantity,
-          priceYen: item.priceYen,
-          frequencyUnit: item.frequencyUnit,
-          frequencyInterval: item.frequencyInterval,
-        })),
-      ],
-    });
+    setIsSaving(true);
+    try {
+      const current = await loadAppState();
+      await saveAppState({
+        ...current,
+        items: [
+          ...current.items,
+          ...selected.map((item) => ({
+            id: crypto.randomUUID(),
+            name: item.name,
+            quantity: item.quantity,
+            priceYen: item.priceYen,
+            frequencyUnit: item.frequencyUnit,
+            frequencyInterval: item.frequencyInterval,
+          })),
+        ],
+      });
 
-    setStatus("success");
-    setMessage(`${selected.length}件を保存しました。合計登録数: ${next.items.length}件`);
+      router.push("/");
+    } catch (error) {
+      setStatus("error");
+      setMessage(error instanceof Error ? error.message : "保存に失敗しました。");
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -224,9 +237,9 @@ export default function ImportTextPage() {
               <TableRow>
                 <TableHead>使用</TableHead>
                 <TableHead>商品名</TableHead>
-                <TableHead>個数</TableHead>
-                <TableHead>金額</TableHead>
-                <TableHead>周期</TableHead>
+                <TableHead className="w-20 whitespace-nowrap">個数</TableHead>
+                <TableHead className="w-28 whitespace-nowrap">金額</TableHead>
+                <TableHead className="w-40 whitespace-nowrap">周期</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -254,6 +267,7 @@ export default function ImportTextPage() {
                       <Input
                         type="number"
                         min={1}
+                        className="h-9 px-2"
                         value={item.quantity}
                         onChange={(event) => updateRow(item.id, "quantity", Number(event.target.value))}
                       />
@@ -262,14 +276,24 @@ export default function ImportTextPage() {
                       <Input
                         type="number"
                         min={0}
+                        className="h-9 px-2"
                         value={item.priceYen}
                         onChange={(event) => updateRow(item.id, "priceYen", Number(event.target.value))}
                       />
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-2">
+                      <div className="flex gap-1">
+                        <Input
+                          type="number"
+                          min={1}
+                          className="h-9 w-16 px-2"
+                          value={item.frequencyInterval}
+                          onChange={(event) =>
+                            updateRow(item.id, "frequencyInterval", Number(event.target.value))
+                          }
+                        />
                         <select
-                          className="rounded-md border border-input bg-background px-2 text-sm"
+                          className="h-9 rounded-md border border-input bg-background px-2 text-sm"
                           value={item.frequencyUnit}
                           onChange={(event) =>
                             updateRow(item.id, "frequencyUnit", event.target.value as "week" | "month")
@@ -278,14 +302,6 @@ export default function ImportTextPage() {
                           <option value="week">週</option>
                           <option value="month">か月</option>
                         </select>
-                        <Input
-                          type="number"
-                          min={1}
-                          value={item.frequencyInterval}
-                          onChange={(event) =>
-                            updateRow(item.id, "frequencyInterval", Number(event.target.value))
-                          }
-                        />
                       </div>
                     </TableCell>
                   </TableRow>
@@ -295,7 +311,9 @@ export default function ImportTextPage() {
           </Table>
 
           <div className="flex justify-end">
-            <Button onClick={saveSelected} disabled={parsedItems.length === 0}>選択行を保存</Button>
+            <Button onClick={saveSelected} disabled={parsedItems.length === 0 || isSaving}>
+              {isSaving ? "保存中..." : "選択行を保存"}
+            </Button>
           </div>
 
           {rowErrors.length > 0 ? <p className="text-sm text-red-600">{rowErrors[0]}</p> : null}

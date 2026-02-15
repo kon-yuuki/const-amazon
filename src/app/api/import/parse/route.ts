@@ -7,16 +7,57 @@ const textPayloadSchema = z.object({
   rawText: z.string().min(1).max(20000),
 });
 
+function getErrorStatus(error: unknown): number | null {
+  if (typeof error !== "object" || error === null) {
+    return null;
+  }
+
+  const status = (error as { status?: number }).status;
+  const code = (error as { code?: number }).code;
+
+  if (typeof status === "number") {
+    return status;
+  }
+
+  if (typeof code === "number") {
+    return code;
+  }
+
+  return null;
+}
+
+function getErrorText(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return "";
+}
+
 function toClientErrorMessage(error: unknown) {
   if (error instanceof z.ZodError) {
     return "リクエスト形式が不正です。";
   }
 
-  if (error instanceof Error) {
-    return error.message;
+  const status = getErrorStatus(error);
+  const text = getErrorText(error);
+
+  if (text.includes("GEMINI_API_KEY")) {
+    return "いま解析の準備がうまくできていないみたいです🙇 少し時間をおいて、もう一度試してみてください。";
   }
 
-  return "解析中に予期しないエラーが発生しました。";
+  if (status === 429) {
+    return "アクセスが集中していて、解析が混み合っています🕰️ 少し待ってから、もう一度試してみてください。";
+  }
+
+  if (status !== null && status >= 500) {
+    return "いま解析サービス側がちょっと不安定みたいです💦 時間をおいて、もう一度試してみてください。";
+  }
+
+  if (text) {
+    return `うまく解析できませんでした😢 ${text}`;
+  }
+
+  return "うまく解析できませんでした😢 少し時間をおいて、もう一度試してみてください。";
 }
 
 export async function POST(request: Request) {
@@ -59,6 +100,15 @@ export async function POST(request: Request) {
         return NextResponse.json({ message: "画像ファイルを1つ以上指定してください。" }, { status: 400 });
       }
 
+      const expectedItemCountRaw = formData.get("expectedItemCount");
+      const expectedItemCount = typeof expectedItemCountRaw === "string" && expectedItemCountRaw.trim()
+        ? Number(expectedItemCountRaw)
+        : undefined;
+      const normalizedExpectedItemCount =
+        typeof expectedItemCount === "number" && Number.isInteger(expectedItemCount) && expectedItemCount > 0
+          ? expectedItemCount
+          : undefined;
+
       const images = await Promise.all(
         files.map(async (file) => ({
           mimeType: file.type || "image/png",
@@ -68,6 +118,7 @@ export async function POST(request: Request) {
       const result = await extractSubscriptions({
         kind: "images",
         images,
+        expectedItemCount: normalizedExpectedItemCount,
       });
 
       return NextResponse.json(
@@ -90,7 +141,12 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     const message = toClientErrorMessage(error);
-    const status = message === "リクエスト形式が不正です。" ? 400 : 500;
+    const status =
+      message === "リクエスト形式が不正です。"
+        ? 400
+        : getErrorStatus(error) === 429
+          ? 429
+          : 500;
     return NextResponse.json({ message }, { status, headers: { "Cache-Control": "no-store" } });
   }
 }

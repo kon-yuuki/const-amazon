@@ -22,7 +22,11 @@ const BASE_PROMPT = [
 
 type RequestInput =
   | { kind: "text"; rawText: string }
-  | { kind: "images"; images: Array<{ mimeType: string; base64Data: string }> };
+  | {
+      kind: "images";
+      images: Array<{ mimeType: string; base64Data: string }>;
+      expectedItemCount?: number;
+    };
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -64,7 +68,10 @@ export async function extractSubscriptions(input: RequestInput): Promise<Extract
       if (input.kind === "text") {
         contents.push({ text: `${BASE_PROMPT}\n\nSource text:\n${input.rawText}` });
       } else {
-        contents.push({ text: BASE_PROMPT });
+        const imagePrompt = input.expectedItemCount && input.expectedItemCount > 0
+          ? `${BASE_PROMPT} Return exactly ${input.expectedItemCount} unique records if possible. Do not output duplicate products.`
+          : `${BASE_PROMPT} Do not output duplicate products.`;
+        contents.push({ text: imagePrompt });
         for (const image of input.images) {
           contents.push({
             inlineData: {
